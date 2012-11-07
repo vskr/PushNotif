@@ -34,6 +34,7 @@ By doing this, this service makes it very easy to handle the following scenario:
 Using aliases is not necessary. It is present only to make app developers lives easier, by providing a easier to understand abstraction
 
 If you want to use aliases, provide alias id, when you register a device token
+
     push_notif_client = Pushnotif(YOUR_KEY_HERE, YOUR_SECRET_HERE)
     push_notif_client.register("cryptic_device_token_here", "alias_id")
 
