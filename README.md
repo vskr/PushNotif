@@ -21,3 +21,12 @@ e.g. `tag userid="123123" tag1="male" and tag2="gamer" and tag5="somevaluefortag
 
 * Geo Tag: This service also allows you to tag a user/device with geo tag i.e. latitude and longitude 
 e.g. `tag userid="123123" with geotag=(34.12,-122.24)`
+
+
+##How To Use
+`
+#initialie client before making any calls
+push_notif_client = Pushnotif(YOUR_KEY_HERE, YOUR_SECRET_HERE)
+#Broadcasts to all users, registered through this app
+push_notif_client.broadcast()
+`
