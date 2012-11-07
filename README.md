@@ -25,6 +25,11 @@ e.g. `tag userid="123123" with geotag=(34.12,-122.24)`
 
 
 ###Aliases
+----------
+
+One of the important features of this service is it allows you to deal with much easier aliases/alias-ids instead of cryptic device tokens. You can associate a alias (typically user id of your app) to a device token. Single alias can be associated to multiple device tokens.
+
+By doing this, this service makes it very easy to handle the following scenario: Send push notification to user whose id ="123122". If your app is availablle on multiple iOS devices, iPod, iPhone, iPad, sending by alias sends push notification to all the devices associated with it.
 
 
 
