@@ -135,11 +135,12 @@ class Pushnotif:
         if not status == 200:
             raise PushnotifFailure(status, response)
 
-    def addGeoTagToAlias(self, location, alias):
+    def addGeoTagToAlias(self, lat, lng, alias):
         """Adds location tag to given device tokens and alias ids.
 
         Args
-        location            string          String of the form "lat,lng". Latitude followed by a comma and then longitude
+        lat                 float           Latitude of the reference point
+        lng                 float           Longitude of the reference point
         device_tokens       list            List of device tokens which should be tagged with given location
         alias_ids           list            List of alias_ids which should be tagged with given location
 
@@ -153,25 +154,28 @@ class Pushnotif:
 
         """
         payload = {}
-        payload['location'] = location
+        payload['lat'] = lat
+        payload['lng'] = lng
+
         payload['alias'] = alias
         status, response = self._request('POST', payload, GEO_TAG_URL, 'application/json')
         if not status == 200:
             raise PushnotifFailure(status, response)
 
-    def pushByGeo(self,location, radius, payload):
+    def pushByGeo(self,lat,lng, radius, payload):
         """Broadcasts push notif to aliases or devices within a given radius of location.
 
         Args
-        location            string          location string of the form "lat,lng"
-                                            Latitude followed by comma followed by longitude
+        lat                 float           Latitude of the reference point
+        lng                 float           Longitude of the reference point
         radius              int             Radius around the above location, to broadcast the 
                                             push notifs
         TODO Formalize the payload
         payload             string          pn payload
         """
         m_payload = {}
-        m_payload['location'] = location
+        m_payload['lat'] = lat
+        m_payload['lng'] = lng
         m_payload['radius'] = radius
         m_payload['payload'] = payload
         #body = json.dumps(m_payload)
