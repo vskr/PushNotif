@@ -72,3 +72,8 @@ After the above statements get executed, you can use "alias\_id" to refer to all
 
     #Add a custom tag to alias
     push_notif_client.addTagToAlias("userid", tag1="female", tag2="34")
+
+##TODO
+
+* Tests
+* Host it on GAE
