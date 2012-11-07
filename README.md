@@ -16,6 +16,8 @@ e.g. send push notification to all users with `tag1="male" and tag3="42"`
 
 
 ###Tag
-* Custom Content Tags: This service allows you to tag a user/device with few tags with custom values e.g. tag userid="123123" with tag1="male" and tag2="gamer" .... tag5="somevaluefortag5" 
+* Custom Content Tags: This service allows you to tag a user/device with few tags with custom values 
+e.g. `tag userid="123123" tag1="male" and tag2="gamer" and tag5="somevaluefortag5"`
 
-* Geo Tag: This service also allows you to tag a user/device with geo tag i.e. latitude and longitude information tag userid="123123" with geotag=(34.12,-122.24)
+* Geo Tag: This service also allows you to tag a user/device with geo tag i.e. latitude and longitude 
+e.g. `tag userid="123123" with geotag=(34.12,-122.24)`
