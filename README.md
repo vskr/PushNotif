@@ -31,7 +31,13 @@ One of the important features of this service is it allows you to deal with much
 
 By doing this, this service makes it very easy to handle the following scenario: Send push notification to user whose id ="123122". If your app is availablle on multiple iOS devices, iPod, iPhone, iPad, sending by alias sends push notification to all the devices associated with it.
 
+Using aliases is not necessary. It is present only to make app developers lives easier, by providing a easier to understand abstraction
 
+If you want to use aliases, provide alias id, when you register a device token
+    push_notif_client = Pushnotif(YOUR_KEY_HERE, YOUR_SECRET_HERE)
+    push_notif_client.register("cryptic_device_token_here", "alias_id")
+
+After the above statements get executed, you can use "alias\_id" to refer to all the devices maintained by that user.
 
 ##How To Use
 
