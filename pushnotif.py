@@ -274,12 +274,6 @@ class Pushnotif:
 
 
 
-###TODO Differentiate between
-#simple send -> send to alias/dev tokens
-#This is done by pushByTag and pushByAlias
-
-#geo send, and/OR tag send -> send to everyone in this radius and/or who match some tags
-###TODO Remove references to Pushnotif
-
 #########TODO Better api... separate dev_token and alias apis
 #TODO addTagToAlias addTagtoDevtoken
+#TODO addGeoTagToDevToken
