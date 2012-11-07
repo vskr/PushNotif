@@ -11,7 +11,7 @@ PushNotif provides a rich and robust, but easier to use API, to send push notifi
 * Location based: Send a push notification to all the uesrs, within a radius of R miles, from center (lat, lng)
 
 * Tag Based filtering: Send push notification to all users where [tag1="some-value-for-tag1" [AND tag2="some-value-for-tag2"]...] 
-e.g. send push notification to all users with `tag1="male" and tag3="42"
+e.g. send push notification to all users with `tag1="male" and tag3="42"`
 
 
 ###Tag
