@@ -35,22 +35,6 @@ class Pushnotif:
         self.secret = secret
 
         self.auth_string = base64.b64encode('%s:%s' % (self.key, self.secret))
-        ##TODO Remove this
-    def _request2(self, method, body, url, content_type=None):
-	#TODO Support https
-        #h = httplib.HTTPSConnection(SERVER)
-        h = httplib.HTTPConnection(SERVER)
-        headers = {
-            'Authorization': 'Basic %s' % self.auth_string,
-        }
-        if content_type:
-            headers['content-type'] = content_type
-        h.request(method, url, body=body, headers=headers)
-        resp = h.getresponse()
-        if resp.status == 401:
-            raise Unauthorized(resp.status, "Request failed probably due to wrong combination of api key and secret. Please check the key and secret you are using")
-
-        return resp.status, resp.read()
 
     def _request(self, method, body, url, content_type=None):
         ###TODO This is a very basic auth, and should be changed later
@@ -65,20 +49,23 @@ class Pushnotif:
 
         return r.status_code, r.text
 
-    def register(self, device_token, alias_id=None):
+    def register(self, device_token, alias_id=None, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None):
         #TODO Allow users to add tags while registering
         """Register the device token.
 
-        TODO Add support for adding tags on register time
 	Args
-	TODO Include data types too	
-	device_token		-		Device token of the device
-	alias_id		str		An alias id for this device token.
-						This parameter is only for convenience, and it should be used if app 
-						developers find it easier to work with app-specific unique ids 
-						(e.g. logged-in user ids) instead of device tokens
-        TODO Add tags info
-        Make it a fixed number of tags
+	device_token            str	        Device token of the device
+	alias_id		str		An alias id for this device token. 
+                                                This parameter is only for convenience,
+                                                and it should be used if app developers
+                                                find it easier to work with app-specific
+                                                unique ids (e.g. logged-in user ids) 
+                                                instead of device tokens
+        tag1...tag5             str             Tags that are used to identify device/
+                                                alias
+        lat                     float           Latitude of this device/alias
+        lng                     float           Longitude of this device/alias
+
 
 	Return
 	TODO Improve the return value
@@ -90,6 +77,14 @@ class Pushnotif:
         url = DEVICE_TOKEN_REGISTER_URL
         payload = {}
 	payload['device_token'] = device_token
+	payload['tag1'] = tag1
+	payload['tag2'] = tag2
+	payload['tag3'] = tag3
+	payload['tag4'] = tag4
+	payload['tag5'] = tag5
+	payload['lat']  = lat
+	payload['lng']  = lng
+
         if alias_id is not None:
             payload['alias_id'] = alias_id
         #body = json.dumps(payload)
@@ -277,3 +272,4 @@ class Pushnotif:
 #########TODO Better api... separate dev_token and alias apis
 #TODO addTagToAlias addTagtoDevtoken
 #TODO addGeoTagToDevToken
+#TODO allow them to send custom arguments

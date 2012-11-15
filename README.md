@@ -1,7 +1,7 @@
 PushNotif
 =========
 
-Python Client for sending pushnotifs using PushNotif service
+Python Client, for PushNotif service, to send push notifications to iOS devices 
 
 PushNotif provides a rich and robust, but easier to use API, to send push notifications to iPhone devices. iPhone app developers must use this service if they want to send targeted push notifications to their app users.
 
