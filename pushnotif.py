@@ -1,9 +1,9 @@
 """Python module for using the pushnotif API"""
 
-import httplib
 #dependency
 import requests
 import base64
+import logging
 try:
     import json
 except ImportError:
@@ -20,13 +20,18 @@ from pushnotifconstants import *
 class Unauthorized(Exception):
     """Raised when we get a 401 from the server"""
 
-
 class PushnotifFailure(Exception):
     """Raised when we get an error response from the server.
 
     args are (status code, message)
 
     """
+
+class IdTypes:
+    """Enum to classify a identifier, used to send push notifs,
+    if id is a device token or an alias."""
+    DEVICE_TOKEN    = 1
+    ALIAS           = 2
 
 class Pushnotif:
 
@@ -35,6 +40,9 @@ class Pushnotif:
         self.secret = secret
 
         self.auth_string = base64.b64encode('%s:%s' % (self.key, self.secret))
+    
+    def __repr__(self):
+        return repr((self.key[:4] + '...', self.secret[:4] + '...'))
 
     def _request(self, method, body, url, content_type=None):
         ###TODO This is a very basic auth, and should be changed later
@@ -50,7 +58,6 @@ class Pushnotif:
         return r.status_code, r.text
 
     def register(self, device_token, alias_id=None, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None):
-        #TODO Allow users to add tags while registering
         """Register the device token.
 
 	Args
@@ -61,14 +68,13 @@ class Pushnotif:
                                                 find it easier to work with app-specific
                                                 unique ids (e.g. logged-in user ids) 
                                                 instead of device tokens
-        tag1...tag5             str             Tags that are used to identify device/
-                                                alias
+        tag1...tag5             str             Tags that are used to identify dev token/
+                                                alias_id
         lat                     float           Latitude of this device/alias
         lng                     float           Longitude of this device/alias
 
 
 	Return
-	TODO Improve the return value
 	result			bool		Returns the result of registering the device token
 						True if successful, false otherwise	
 	"""
@@ -95,24 +101,50 @@ class Pushnotif:
             raise PushnotifFailure(status, response)
         return status == 201
 
-    def deregister(self, device_token):
-        """Mark this device token as inactive"""
-        url = DEVICE_TOKEN_URL + device_token
-        status, response = self._request('DELETE', '', url, None)
-        if status != 204:
+    def deregister_device(self, device_token):
+        """De-registers device associated with this device token.
+
+        You cannot send pushnotifs to a device, after deregistering, until you
+        register the device again.
+
+        Args
+        device_token            str             Device token of the device
+        """
+        payload = {'dev_token' : device_token}
+        status, response = \
+                self._request('POST', payload, DEREGISTER_DEVICE_URL, None)
+        if not status in (200, 201):
             raise PushnotifFailure(status, response)
+        return status == 201
 
+    def deregister_alias(self, alias):
+        """De-registers all the devices associated with this device token.
 
-    def pushToDevice(self, payload, device_token):
-        """Pushes payload to the device token."""
+        You cannont send push notifs to this alias, and therefor any devices
+        associated to that alias after de-registering that alias.
+
+        Args
+        alias                   str             Alias-id of the user,whose devices
+                                                will be de-registered
+        """
+        payload = {'alias_id' : alias}
+        status, response = self._request('POST', payload, DEREGISTER_ALIAS_URL, None)
+        if not status in (200, 201):
+            raise PushnotifFailure(status, response)
+        return status == 201
+
+    def push_to_device(self, payload, device_token):
+        """Sends a push notif to device associated with device_token."""
+        #TODO Define structure around payload
         data= {}
         data['payload'] = payload
         data['device_token'] = device_token 
         status, response = self._request('POST', data, PUSH_TO_DEVICE_URL, 'application/json')
         if not status == 200:
             raise PushnotifFailure(status, response)
+        return status == 200
 
-    def pushToAlias(self, payload, *aliases):
+    def push_to_alias(self, payload, *aliases):
         """Pushes payload to all the devices associated with alias."""
         data= {}
         data['payload'] = payload
@@ -120,6 +152,7 @@ class Pushnotif:
         status, response = self._request('POST', data, PUSH_TO_ALIAS_URL, 'application/json')
         if not status == 200:
             raise PushnotifFailure(status, response)
+        return status == 200
 
 
     def broadcast(self, payload):
@@ -129,8 +162,9 @@ class Pushnotif:
             'application/json')
         if not status == 200:
             raise PushnotifFailure(status, response)
+        return (status == 200) or (status == 201)
 
-    def addGeoTagToAlias(self, lat, lng, alias):
+    def add_geotag_to_alias(self, lat, lng, alias):
         """Adds location tag to given device tokens and alias ids.
 
         Args
@@ -148,16 +182,44 @@ class Pushnotif:
         result              bool            True on success, false otherwise
 
         """
-        payload = {}
-        payload['lat'] = lat
-        payload['lng'] = lng
+#        payload = {}
+#        payload['lat'] = lat
+#        payload['lng'] = lng
+#
+#        payload['alias'] = alias
+#        status, response = self._request('POST', payload, GEO_TAG_URL, 'application/json')
+#        if not status == 200:
+#            raise PushnotifFailure(status, response)
+        return self._add_tag_helper(alias, IdTypes.ALIAS, lat=lat, lng=lng)
 
-        payload['alias'] = alias
-        status, response = self._request('POST', payload, GEO_TAG_URL, 'application/json')
-        if not status == 200:
-            raise PushnotifFailure(status, response)
+    def add_geotag_to_device(self, lat, lng, dev_token):
+        """Adds location tag to given device tokens and alias ids.
 
-    def pushByGeo(self,lat,lng, radius, payload):
+        Args
+        lat                 float           Latitude of the reference point
+        lng                 float           Longitude of the reference point
+        device_token        str             device token to tag geo info
+
+        Main reason this function accepts device_tokens or alias_ids is because sometimes apps find it easier to 
+        deal with alias_ids instead of device tokens. This function also takes device tokens, if app doesn't maintain
+        any alias_ids(unique ids)
+
+
+        Return
+        result              bool            True on success, false otherwise
+
+        """
+#        payload = {}
+#        payload['lat'] = lat
+#        payload['lng'] = lng
+#
+#        payload['alias'] = alias
+#        status, response = self._request('POST', payload, GEO_TAG_URL, 'application/json')
+#        if not status == 200:
+#            raise PushnotifFailure(status, response)
+        return self._add_tag_helper(dev_token, IdTypes.DEVICE_TOKEN, lat=lat, lng=lng)
+
+    def push_by_geo(self,lat,lng, radius, payload, alias_id):
         """Broadcasts push notif to aliases or devices within a given radius of location.
 
         Args
@@ -168,17 +230,19 @@ class Pushnotif:
         TODO Formalize the payload
         payload             string          pn payload
         """
-        m_payload = {}
-        m_payload['lat'] = lat
-        m_payload['lng'] = lng
-        m_payload['radius'] = radius
-        m_payload['payload'] = payload
-        #body = json.dumps(m_payload)
-        status, response = self._request('POST', m_payload, GEO_BROADCAST_URL, 'application/json')
-        if not status == 200:
-            raise PushnotifFailure(status, response)
+        #m_payload = {}
+        #m_payload['lat'] = lat
+        #m_payload['lng'] = lng
+        #m_payload['radius'] = radius
+        #m_payload['payload'] = payload
+        #m_payload['alias_id'] = alias_id
+        ##body = json.dumps(m_payload)
+        #status, response = self._request('POST', m_payload, GEO_BROADCAST_URL, 'application/json')
+        #if not status == 200:
+        #    raise PushnotifFailure(status, response)
+        self.push_by_tag(alias_id, payload, lat=lat, lng=lng, radius=radius)
 
-    def pushByTag(self, user_id, payload, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None, radius=0):
+    def push_by_tag(self, user_id, payload, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None, radius=0):
         """Sends push notif to users who match all the given tags.
 
         Args
@@ -208,15 +272,22 @@ class Pushnotif:
         status, response = self._request('POST', m_payload, PUSH_BY_TAG_URL, 'application/json')
         if not status == 200:
             raise PushnotifFailure(status, response)
+
         
-    def addTagToAlias(self, alias, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None):
-        """Adds or updates existing tags for given device_tokens and aliases.
+    def add_tag_to_device(self, device_token, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None):
+        return self._add_tag_helper(device_token, IdTypes.DEVICE_TOKEN, tag1, tag2, tag3, tag4, tag5, lat, lng)
+
+    def add_tag_to_alias(self, alias, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None):
+        return self._add_tag_helper(alias, IdTypes.ALIAS, tag1, tag2, tag3, tag4, tag5, lat, lng)
+
+    def _add_tag_helper(self, identifier, id_type, tag1=None, tag2=None, tag3=None, tag4=None, tag5=None, lat=None, lng=None):
+        """Adds or updates existing tags for given device_tokens or aliases.
         
         Args
-        device_tokens       list            List of device tokens whose tags will be updated/new tags
-                                            will be added
-        aliases             list            List of aliases whose tags will be updated/new tags will be 
-                                            added
+        identifier          str             A unique identifier, alias or device token, that is used to 
+                                            send push notifications
+        id_type             IdTypes         One of IdTypes, DEVICE_TOKEN or ALIAS
+
         tag1                string          None means tag1 for above device_tokens/aliases will remain
                                             unchanged. Any value other than None means tag1 for above 
                                             device tokens and aliases will be updated
@@ -244,7 +315,14 @@ class Pushnotif:
         #addTag(dev_token,alias,tag2="newtag2", tag4="newtag4"). Python's named arguments helps in avoiding
         #including default values for other tags in function call
         payload = {}
-        payload['alias']       = alias
+        if id_type == IdTypes.DEVICE_TOKEN:
+            payload['device_token'] = identifier
+            url                     = ADD_TAG_TO_DEVICE_URL
+        elif id_type == IdTypes.ALIAS:
+            payload['alias']        = identifier
+            url                     = ADD_TAG_TO_ALIAS_URL
+        else:
+            raise Exception("Wrong Id Type, should be either IdTypes.DEVICE_TOKEN or IdTypes.ALIAS")
 
         if tag1 is not None:
             payload['tag1']      = tag1
@@ -263,13 +341,12 @@ class Pushnotif:
 
 
         #body = json.dumps(payload)
-        status, response = self._request('POST', payload, ADD_TAG_URL, 'application/json')
+        status, response = self._request('POST', payload, url, 'application/json')
         if not status == 200:
             raise PushnotifFailure(status, response)
-
-
 
 #########TODO Better api... separate dev_token and alias apis
 #TODO addTagToAlias addTagtoDevtoken
 #TODO addGeoTagToDevToken
 #TODO allow them to send custom arguments
+##This is part of defining payload structure
