@@ -1,6 +1,10 @@
 SERVER = 'localhost:8888'
 #TODO Add https support
 BASE_URL = "http://" + SERVER
+
+#Register an app
+ADD_APP_URL                 = BASE_URL + '/add_app'
+
 DEVICE_TOKEN_URL = BASE_URL + '/device_tokens'
 DEVICE_TOKEN_REGISTER_URL=DEVICE_TOKEN_URL  + '/register'
 GEO_TAG_URL = BASE_URL + '/geo_tag'

@@ -25,7 +25,6 @@ e.g. `tag userid="123123" with geotag=(34.12,-122.24)`
 
 
 ###Aliases
-----------
 
 One of the important features of this service is it allows you to deal with much easier aliases/alias-ids instead of cryptic device tokens. You can associate a alias (typically user id of your app) to a device token. Single alias can be associated to multiple device tokens.
 
@@ -40,24 +39,30 @@ If you want to use aliases, provide alias id, when you register a device token
 
 After the above statements get executed, you can use "alias\_id" to refer to all the devices maintained by that user.
 
-##How To Use
+##Usage
 
     #initialize client before making any calls
     push_notif_client = Pushnotif(YOUR_KEY_HERE, YOUR_SECRET_HERE)
 
+
     #Broadcasts to all users, registered through this app
     push_notif_client.broadcast()
+
 
     #Target send by geo tag
     push_notif_client.pushByGeo(lat=34.12,lng=-122.23,radius=10,"Hello Users")
 
+
     #Target send by custom tags
     push_notif_client.pushByTag(123, "Hello Friends", tag1="male", tag3="night")
 
+
     #Sends could be simple too!!!!!!
+
 
     #Send by device token
     push_notif_client.pushToDevice("Hey User!!", "DEVICE_TOKEN_HERE")
+
 
     #Send to alias
     #Alias, is a easily identified handle for  a device token
@@ -66,9 +71,11 @@ After the above statements get executed, you can use "alias\_id" to refer to all
     #aliases could be something as simple as user ids
     push_notif_client.pushToAlias("Your awesome message here", ["userid1", "userid2"])
 
+
     #Geo tag an alias
     #Tag a user that he lives in San Francisco
     push_notif_client.addgeoTagToAlias(34.23, -123.123, "userid")
+
 
     #Add a custom tag to alias
     push_notif_client.addTagToAlias("userid", tag1="female", tag2="34")

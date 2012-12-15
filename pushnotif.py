@@ -3,11 +3,7 @@
 #dependency
 import requests
 import base64
-import logging
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 from pushnotifconstants import *
 
@@ -17,6 +13,29 @@ from pushnotifconstants import *
 #this is much better than having a static auth_string which has 1:1 mapping
 #with secret , which is of no use, because if auth_string gets leaked, it is as
 #bad as secret getting leaked too
+
+def register_app(app_name, app_cert):
+    """This registers your app with pushnotif service.
+
+    This should be the first step to use pushnotif service
+    Args
+    app_name            str         App name
+    app_cert            file object file object to ios cert file
+
+    Return
+    result              dict        {key:<app_key>, secret:<app_secret>} 
+                                    throws exception on failure
+
+    """
+    params                  = {'app_name':app_name}
+    files                   = {'app_cert':app_cert}
+    add_result              = requests.post(ADD_APP_URL, params=params, files=files)
+
+    if add_result.status_code == 201:
+        return json.loads(add_result.text)
+    else:
+        raise Exception(add_result.text)
+
 class Unauthorized(Exception):
     """Raised when we get a 401 from the server"""
 
@@ -26,6 +45,7 @@ class PushnotifFailure(Exception):
     args are (status code, message)
 
     """
+
 
 class IdTypes:
     """Enum to classify a identifier, used to send push notifs,
