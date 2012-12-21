@@ -1,6 +1,6 @@
 PushNotif
 =========
-![Logo] (pushnotiflogo_cropped.png)
+![Logo] (pusnotiflogo_cropped.png)
 
 A very simple, easy to use Python library, with rich API, to send Push notifications to mobile devices.
 
