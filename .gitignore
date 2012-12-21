@@ -1,3 +1,5 @@
 #Ignore tests directory for now
 #publish tests later
+#blah
+.gitignore
 tests/

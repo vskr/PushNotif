@@ -1,4 +1,5 @@
-SERVER = 'pushnotif.com:8889'
+#SERVER = 'pushnotif.com:8889'
+SERVER = 'localhost:8888'
 #TODO Add https support
 BASE_URL = "http://" + SERVER
 
